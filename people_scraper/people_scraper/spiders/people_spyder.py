@@ -12,20 +12,32 @@ class PeopleScrapy(scrapy.Spider):
 
     
     def parse(self, response):
-        nombre = response.xpath('/html[1]/body[1]/div[1]/div[3]/table[1]/tr[2]/td[1]/table[1]/tr[3]/td[2]/text()').get()
-        nombre = unicodedata.normalize('NFKD', nombre.strip())
+        
+        tabla_intro = response.xpath('/html[1]/body[1]/div[1]/div[3]/table[1]/tr[2]/td[1]/table/tr')
+        for item in tabla_intro:
+            nom_col = item.xpath('td[1]/text()').get()
+            nom_orcid = item.xpath('td[1]/a/text()').get()
+            print(nom_col)
+            if nom_col=='Nombre':
+                nombre = item.xpath('td[2]/text()').get()
+                nombre = unicodedata.normalize('NFKD', nombre.strip())
+            if nom_col=='Categoría':
+                try:
+                    investigador = item.xpath('td[2]/text()').get()
+                    investigador = unicodedata.normalize('NFKD', investigador.strip())
+                except:
+                    investigador = None
+            if nom_orcid is not None and nom_orcid=='Código ORCID':
+                orcid = item.xpath('td[1]/a/@href').get()
+                orcid = unicodedata.normalize('NFKD',orcid.strip())
+            else:
+                orcid = None
+
         
         titulo = response.xpath('/html[1]/body[1]/div[1]/div[3]/table[1]/tr[3]/td[1]/table[1]/tr[2]/td[2]/text()').get()
-        titulo = unicodedata.normalize('NFKD', titulo.strip())
+        titulo = unicodedata.normalize('NFKD', titulo)
         
-        cvlac = response.url
-        
-        orcid = response.xpath('/html[1]/body[1]/div[1]/div[3]/table[1]/tr[2]/td[1]/table[1]/tr[7]/td[1]/a[1]/@href').get()
-        if orcid is not None:
-             orcid = unicodedata.normalize('NFKD',orcid.strip())
-        
-        investigador = response.xpath('/html[1]/body[1]/div[1]/div[3]/table[1]/tr[2]/td[1]/table[1]/tr[2]/td[2]/text()').get()
-        investigador = unicodedata.normalize('NFKD', investigador.strip())
+        cvlac = response.url       
         
         areas = response.xpath('/html[1]/body[1]/div[1]/div[3]/table[1]/tr[6]/td[1]/table[1]')
         areas_actuacion = []
